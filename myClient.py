@@ -4,6 +4,9 @@
 import socket, sys, re, os
 sys.path.append("../lib")       # for params
 import params
+import mytar
+
+debug = 0 #debug flag
 
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50001"),
@@ -50,9 +53,23 @@ if s is None:
     print('could not open socket')
     sys.exit(1)
 
-#Have the archiver archive all given files to a byte array, then send this byte array as outMessage
+#Begin Execution
+if len(sys.argv) < 2:
+    print("Correct usage: myClient.py <input1> <input2> ... <inputN>")
+    exit()
 
-outMessage = "Hello world!".encode()
+#outMessage = "Hello world!".encode()
+outMessage = b""
+#Have the archiver archive all given files to a byte array, then send this byte array as outMessage
+filesIn = []
+for i in range(2, len(sys.argv)):
+    filesIn.append(sys.argv[i])
+    if debug: print(sys.argv[i])
+
+framer = mytar.Framer(outMessage)
+for file in filesIn:
+    outMessage+=framer.frame(file)
+
 while len(outMessage):
     print("sending '%s'" % outMessage.decode())
     bytesSent = os.write(s.fileno(), outMessage)

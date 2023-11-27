@@ -5,6 +5,8 @@
 import socket, sys, re
 sys.path.append("../lib")       # for params
 import params
+import mytar
+import os
 
 switchesVarDefaults = (
     (('-l', '--listenPort') ,'listenPort', 50001),
@@ -25,7 +27,8 @@ s.bind((listenAddr, listenPort))
 s.listen(1)              # allow only one outstanding request
 # s is a factory for connected sockets
 
-#Recieve the tar file, untar the byte array
+#open the tar file
+fd = os.open(b"out.tar", os.O_WRONLY | os.O_CREAT)
 
 conn, addr = s.accept()  # wait until incoming connection request (and accept it)
 print('Connected by', addr)
@@ -34,6 +37,10 @@ while 1:
     if len(data) == 0:
         print("Zero length read, nothing to send, terminating")
         break
+
+    #Write to an archive file
+    os.write(fd, data)
+
     sendMsg = ("Echoing %s" % data).encode()
     print("Received '%s', sending '%s'" % (data, sendMsg.decode()))
     while len(sendMsg):
@@ -42,3 +49,11 @@ while 1:
 conn.shutdown(socket.SHUT_WR)
 conn.close()
 
+#close out.tar for writing
+os.close(fd)
+
+#Untar the archive
+fd = os.open(b"out.tar", os.O_RDONLY)
+reader = mytar.TarReader(fd)
+reader.Untar()
+os.close(fd)

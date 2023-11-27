@@ -4,6 +4,7 @@
 import socket, sys, re, time
 sys.path.append("../lib")       # for params
 import params
+import mytar
 
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50001"),
